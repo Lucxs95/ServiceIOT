@@ -26,7 +26,7 @@ app.get('/open', (req, res) => {
 
     // Publier un message MQTT pour contrôler la LED
     const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
-    const mqttTopic = 'uca/iot/piscines';
+    const mqttTopic = 'uca/iot/led';
     const mqttMessage = JSON.stringify({ led: { etat: 'on' } }); // Message JSON avec l'état de la LED
 
     const mqttClient = mqtt.connect(mqttBroker);
