@@ -55,14 +55,15 @@ app.get('/open', (req, res) => {
 
 async function insertDataIntoMongoDB(data) {
     try {
+        const parsedData = JSON.parse(data); // Parse the data string into an object
         const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
         const client = new MongoClient(uri);
         await client.connect();
 
-        const db = client.db('piscines'); // Remplacez 'piscines' par le nom de votre base de données
-        const collection = db.collection('piscines'); // Remplacez 'piscines' par le nom de votre collection
+        const db = client.db('piscines');
+        const collection = db.collection('piscines');
 
-        const result = await collection.insertOne(data);
+        const result = await collection.insertOne(parsedData); // Insert the parsed data object
         console.log('Données insérées dans MongoDB');
         console.log('ID du document inséré :', result.insertedId);
 
