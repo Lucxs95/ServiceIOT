@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const port = 3000;
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
 const mqtt = require('mqtt');
 
 app.use(express.json());
@@ -43,12 +43,32 @@ app.get('/open', (req, res) => {
                 res.sendStatus(500);
             } else {
                 console.log('Message MQTT publié avec succès');
+                insertDataIntoMongoDB(mqttMessage); // Insérer les données dans MongoDB
                 res.sendStatus(200);
             }
             mqttClient.end(); // Déconnectez-vous du broker MQTT après avoir publié le message
         });
     });
 });
+
+async function insertDataIntoMongoDB(data) {
+    try {
+        const uri = 'mongodb://localhost:27017'; // L'URI de connexion à votre base de données MongoDB
+        const client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('mydb'); // Remplacez 'mydb' par le nom de votre base de données
+        const collection = db.collection('mycollection'); // Remplacez 'mycollection' par le nom de votre collection
+
+        const result = await collection.insertOne(data);
+        console.log('Données insérées dans MongoDB');
+        console.log('ID du document inséré :', result.insertedId);
+
+        client.close();
+    } catch (error) {
+        console.error('Erreur lors de l\'insertion des données dans MongoDB :', error);
+    }
+}
 
 
 // Démarrer le serveur
