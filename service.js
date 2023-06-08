@@ -19,7 +19,6 @@ app.post('/publish', (req, res) => {
     res.sendStatus(200);
 });
 
-
 app.get('/open', (req, res) => {
     // Récupérer les données envoyées dans la requête
     const ident = req.query.idswp;
@@ -28,10 +27,13 @@ app.get('/open', (req, res) => {
     // Publier un message MQTT pour contrôler la LED
     const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
     const mqttTopic = 'uca/iot/led';
-    const mqttMessage = JSON.stringify({ led: { etat: 'on' }, user : {
-        id : clientid,
-        idswp : ident
-        } }); // Message JSON avec l'état de la LED
+    const mqttMessage = JSON.stringify({
+        led: { etat: 'on' },
+        user: {
+            id: clientid,
+            idswp: ident
+        }
+    }); // Message JSON avec l'état de la LED
 
     const mqttClient = mqtt.connect(mqttBroker);
 
@@ -53,12 +55,12 @@ app.get('/open', (req, res) => {
 
 async function insertDataIntoMongoDB(data) {
     try {
-        const uri = 'mongodb://localhost:27017'; // L'URI de connexion à votre base de données MongoDB
+        const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
         const client = new MongoClient(uri);
         await client.connect();
 
-        const db = client.db('piscines'); // Remplacez 'mydb' par le nom de votre base de données
-        const collection = db.collection('piscines'); // Remplacez 'mycollection' par le nom de votre collection
+        const db = client.db('piscines'); // Remplacez 'piscines' par le nom de votre base de données
+        const collection = db.collection('piscines'); // Remplacez 'piscines' par le nom de votre collection
 
         const result = await collection.insertOne(data);
         console.log('Données insérées dans MongoDB');
@@ -69,7 +71,6 @@ async function insertDataIntoMongoDB(data) {
         console.error('Erreur lors de l\'insertion des données dans MongoDB :', error);
     }
 }
-
 
 // Démarrer le serveur
 app.listen(port, () => {
