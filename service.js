@@ -57,8 +57,8 @@ async function insertDataIntoMongoDB(data) {
         const client = new MongoClient(uri);
         await client.connect();
 
-        const db = client.db('mydb'); // Remplacez 'mydb' par le nom de votre base de données
-        const collection = db.collection('mycollection'); // Remplacez 'mycollection' par le nom de votre collection
+        const db = client.db('piscines'); // Remplacez 'mydb' par le nom de votre base de données
+        const collection = db.collection('piscines'); // Remplacez 'mycollection' par le nom de votre collection
 
         const result = await collection.insertOne(data);
         console.log('Données insérées dans MongoDB');
