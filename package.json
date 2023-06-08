@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "install-modules": "node install-modules.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "install-modules": "^1.0.9",
+    "mqtt": "^4.3.7",
+    "npm": "^9.7.1",
+    "run": "^1.4.0"
+  }
+}
