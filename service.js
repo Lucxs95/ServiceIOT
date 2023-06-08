@@ -22,12 +22,16 @@ app.post('/publish', (req, res) => {
 
 app.get('/open', (req, res) => {
     // Récupérer les données envoyées dans la requête
-    const data = req.query;
+    const ident = req.query.idswp;
+    const clientid = req.query.idu;
 
     // Publier un message MQTT pour contrôler la LED
     const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
     const mqttTopic = 'uca/iot/led';
-    const mqttMessage = JSON.stringify({ led: { etat: 'on' } }); // Message JSON avec l'état de la LED
+    const mqttMessage = JSON.stringify({ led: { etat: 'on' }, user : {
+        id : clientid,
+        idswp : ident
+        } }); // Message JSON avec l'état de la LED
 
     const mqttClient = mqtt.connect(mqttBroker);
 
