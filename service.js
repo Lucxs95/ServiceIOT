@@ -145,7 +145,12 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
             // Define the perimeter distance in meters (e.g., 100 meters)
             const perimeterDistance = 100;
 
-            const isOpen = getDistanceFromLatLonInKm(userLat, userLon, lat, lon) <= perimeterDistance;
+
+            const dist_metres = 11*10000*Math.sqrt(Math.pow(userLat-lat,2)+Math.pow(userLon-lon,2))
+
+            console.log('dist_metres :', dist_metres);
+
+            const isOpen = dist_metres <= perimeterDistance;
 
 
             console.log('isOpen :', isOpen);
