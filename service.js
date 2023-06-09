@@ -146,11 +146,15 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
             const perimeterDistance = 100;
 
 
-            const dist_metres = 11*10000*Math.sqrt(Math.pow(userLat-lat,2)+Math.pow(userLon-lon,2))
 
-            console.log('dist_metres :', dist_metres);
+            const distance = geolib.getDistance(
+                { latitude: userLat, longitude: userLon },
+                { latitude: lat, longitude: lon }
+            );
 
-            const isOpen = dist_metres <= perimeterDistance;
+            console.log('distance :', distance);
+
+            const isOpen = distance <= perimeterDistance;
 
 
             console.log('isOpen :', isOpen);
