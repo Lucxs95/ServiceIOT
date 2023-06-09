@@ -77,7 +77,6 @@ app.get('/open', (req, res) => {
 
 async function insertDataIntoMongoDB(data, collectionGiven) {
     try {
-        const parsedData = JSON.parse(data); // Parse the data string into an object
         const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
         const client = new MongoClient(uri);
         await client.connect();
