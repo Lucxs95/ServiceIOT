@@ -104,33 +104,22 @@ async function insertDataIntoMongoDB(data, collectionGiven) {
     }
 }
 
-function isInsidePerimeter(clientLatitude, clientLongitude, poolLatitude, poolLongitude, radius) {
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        // Convertit les coordonnées en radians
-        const lat1Rad = lat1 * (Math.PI / 180);
-        const lon1Rad = lon1 * (Math.PI / 180);
-        const lat2Rad = lat2 * (Math.PI / 180);
-        const lon2Rad = lon2 * (Math.PI / 180);
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = deg2rad(lat2-lat1);  // deg2rad below
+    var dLon = deg2rad(lon2-lon1);
+    var a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon/2) * Math.sin(dLon/2)
+    ;
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c * 100; // Distance in m
+    return d;
+}
 
-        // Rayon moyen de la Terre en kilomètres
-        const radius = 6371.0;
-
-        // Calcul des différences de latitude et de longitude
-        const deltaLat = lat2Rad - lat1Rad;
-        const deltaLon = lon2Rad - lon1Rad;
-
-        // Calcul de la distance orthodromique
-        const a =
-            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = radius * c;
-
-        return distance;
-    }
-
-    const distance = calculateDistance(clientLatitude, clientLongitude, poolLatitude, poolLongitude);
-    return distance <= radius;
+function deg2rad(deg) {
+    return deg * (Math.PI/180)
 }
 
 
@@ -155,7 +144,7 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
             // Define the perimeter distance in meters (e.g., 100 meters)
             const perimeterDistance = 100;
 
-            const isOpen = isInsidePerimeter(userLat, userLon, lat, lon, perimeterRadius);
+            const isOpen = getDistanceFromLatLonInKm(userLat, userLon, lat, lon) <= perimeterDistance;
 
 
             console.log('isOpen :', isOpen);
