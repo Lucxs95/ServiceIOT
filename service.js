@@ -145,7 +145,10 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
             // Define the perimeter distance in meters (e.g., 100 meters)
             const perimeterDistance = 100;
 
-
+            console.log('userLat :', userLat);
+            console.log('userLon :', userLon);
+            console.log('lat :', lat);
+            console.log('lon :', lon);
 
             const distance = geolib.getDistance(
                 { latitude: userLat, longitude: userLon },
