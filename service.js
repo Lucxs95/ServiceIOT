@@ -6,6 +6,26 @@ const mqtt = require('mqtt');
 
 app.use(express.json());
 
+
+app.post('/login', (req, res) => {
+    const lat = req.body.lat;
+    const lon = req.body.lon;
+    const idu = req.body.idu;
+    const idswp = req.body.idswp;
+
+    getDataFromMongoDBByIduAndIdswp("logsClient", idu, idswp).then((data) => {
+        if (data.length > 0) {
+            console.log(data);
+            res.send(data);
+            updateDataIntoMongoDB(idu, idswp, lat, lon, "logsClient");
+        } else {
+            insertDataIntoMongoDB(req.body, "logsClient");
+        }
+    });
+
+    res.sendStatus(200);
+});
+
 // Route pour recevoir les requêtes POST
 app.post('/publish', (req, res) => {
     // Récupérer les données envoyées dans la requête
@@ -26,12 +46,14 @@ app.get('/open', (req, res) => {
 
     // Publier un message MQTT pour contrôler la LED
     const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
-    const mqttTopic = 'uca/iot/led';
+    const mqttTopic = 'uca/waterbnb/21904022/lucasPool';
     const mqttMessage = JSON.stringify({
         led: {etat: 'on'},
         user: {
             id: clientid,
-            idswp: ident
+            idswp: ident,
+            lat: 43.5704187,
+            lon: 6.9917197
         }
     }); // Message JSON avec l'état de la LED
 
@@ -92,7 +114,7 @@ async function getDataFromMongoDB(collectionGiven) {
     }
 }
 
-async function getDataFromMongoDBByName(collectionGiven, name) {
+async function getDataFromMongoDBByIdu(collectionGiven, idu) {
     try {
         const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
         const client = new MongoClient(uri);
@@ -101,7 +123,7 @@ async function getDataFromMongoDBByName(collectionGiven, name) {
         const db = client.db('piscines');
         const collection = db.collection(collectionGiven);
 
-        const query = {name: name}; // Define the query to filter by name
+        const query = {idu: idu}; // Define the query to filter by name
         const result = await collection.find(query).toArray();
         console.log('Données récupérées de MongoDB');
 
@@ -112,6 +134,52 @@ async function getDataFromMongoDBByName(collectionGiven, name) {
     }
 }
 
+async function getDataFromMongoDBByIduAndIdswp(collectionGiven, idu, idswp) {
+    try {
+        const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
+        const client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('piscines');
+        const collection = db.collection(collectionGiven);
+
+        const query = {idu: idu, idswp: idswp}; // Définir la requête pour filtrer par idu et idswp
+        const result = await collection.find(query).toArray();
+        console.log('Données récupérées de MongoDB');
+
+        client.close();
+        return result;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données de MongoDB :', error);
+    }
+}
+
+async function updateDataIntoMongoDB(idu, idswp, lat, lon, collectionGiven) {
+    try {
+        const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
+        const client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('piscines');
+        const collection = db.collection(collectionGiven);
+
+        const query = {idu: idu, idswp: idswp};
+        const update = {
+            $set: {
+                lat: lat,
+                lon: lon
+            }
+        };
+
+        const result = await collection.updateOne(query, update);
+        console.log('Données mises à jour dans MongoDB');
+        console.log('Nombre de documents mis à jour :', result.modifiedCount);
+
+        client.close();
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour des données dans MongoDB :', error);
+    }
+}
 
 app.get('/data/:collection', async (req, res) => {
     try {
