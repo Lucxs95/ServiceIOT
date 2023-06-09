@@ -24,6 +24,57 @@ app.post('/login', async (req, res) => {
             if (existingData.lat !== lat || existingData.lon !== lon) {
                 await updateDataIntoMongoDB(idu, idswp, lat, lon, "logsClient");
                 console.log('Données mises à jour');
+                const data = await getDataFromMongoDBByIduAndIdswp("piscines", idu, idswp);
+                const piscine = data[0];
+
+                if (piscine.lat !== lat || piscine.lon !== lon || piscine.porte.etat !== 'close') {
+
+                    const distance = geolib.getDistance(
+                        {latitude: piscine.lat, longitude: piscine.lon},
+                        {latitude: lat, longitude: lon}
+                    );
+                    if (distance > 100) {
+                        console.log('Distance trop grande');
+
+
+                        let mqttMessage = JSON.stringify({
+                            piscine: {
+                                nomPiscine: nomPiscine,
+                                porte: {etat: 'close'},
+                                user: {
+                                    idu: idu,
+                                    idswp: idswp,
+                                }
+                            }
+                        });
+
+                        const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
+                        const mqttTopic = `uca/waterbnb/${idu}/${idswp}`;
+
+                        const mqttClient = mqtt.connect(mqttBroker);
+
+                        mqttClient.on('connect', () => {
+                            console.log('Connecté au broker MQTT');
+                            mqttClient.publish(mqttTopic, mqttMessage, (err) => {
+                                if (err) {
+                                    console.error('Erreur lors de la publication du message MQTT :', err);
+                                    res.sendStatus(500);
+                                } else {
+                                    console.log('Message MQTT publié avec succès');
+                                    mqttMessage = JSON.parse(mqttMessage);
+                                    insertDataIntoMongoDB(mqttMessage, 'piscines'); // Insérer les données dans MongoDB
+                                    res.sendStatus(200);
+                                }
+                                mqttClient.end(); // Déconnectez-vous du broker MQTT après avoir publié le message
+                            });
+                        });
+
+                    }
+
+
+                }
+
+
             } else {
                 console.log('Les données sont identiques, aucune mise à jour nécessaire');
             }
@@ -102,25 +153,6 @@ async function insertDataIntoMongoDB(data, collectionGiven) {
     } catch (error) {
         console.error('Erreur lors de l\'insertion des données dans MongoDB :', error);
     }
-}
-
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-    var R = 6371; // Radius of the earth in km
-    var dLat = deg2rad(lat2-lat1);  // deg2rad below
-    var dLon = deg2rad(lon2-lon1);
-    var a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon/2) * Math.sin(dLon/2)
-    ;
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    var d = R * c * 1000; // Distance in m
-    console.log('Distance entre le client et la piscine :', d, 'm');
-    return d;
-}
-
-function deg2rad(deg) {
-    return deg * (Math.PI/180)
 }
 
 
