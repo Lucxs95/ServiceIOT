@@ -131,6 +131,10 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
             // Define the perimeter distance in meters (e.g., 100 meters)
             const perimeterDistance = 100;
 
+            console.log('Distance entre le client et la piscine :', distance);
+            console.log('Distance du périmètre :', perimeterDistance);
+            console.log('distance <= perimeterDistance :', distance <= perimeterDistance);
+
             if (distance <= perimeterDistance) {
                 // User is within the perimeter, publish the MQTT message
 
