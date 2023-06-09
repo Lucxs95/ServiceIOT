@@ -133,7 +133,7 @@ app.get('/open', async (req, res) => {
         const lat = req.query.lat;
 
         // Get the user's position from logsClient to verify the perimeter
-        const data = await getDataFromMongoDBByIduAndIdswp("logsClient", clientid, ident);
+        const data = await getDataFromMongoDBByIduAndIdswp('logsClient', clientid, ident);
         if (data.length > 0) {
             const existingData = data[0];
             const userLat = existingData.lat;
@@ -153,7 +153,7 @@ app.get('/open', async (req, res) => {
                 const mqttMessage = 'La porte de la piscine peut s\'ouvrir';
 
                 const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
-                const mqttTopic = 'uca/waterbnb/21904022/lucasPool';
+                const mqttTopic = `uca/waterbnb/${clientid}/${ident}`;
 
                 const mqttClient = mqtt.connect(mqttBroker);
 
@@ -165,14 +165,14 @@ app.get('/open', async (req, res) => {
                             res.sendStatus(500);
                         } else {
                             console.log('Message MQTT publié avec succès');
-                            insertDataIntoMongoDB(mqttMessage, "piscines"); // Insérer les données dans MongoDB
+                            insertDataIntoMongoDB(mqttMessage, 'piscines'); // Insérer les données dans MongoDB
                             res.sendStatus(200);
                         }
                         mqttClient.end(); // Déconnectez-vous du broker MQTT après avoir publié le message
                     });
                 });
             } else {
-                console.log('L\'utilisateur n\'est pas dans le périmètre de la piscine');
+                console.log("L'utilisateur n'est pas dans le périmètre de la piscine");
                 res.sendStatus(403);
             }
         } else {
@@ -184,8 +184,6 @@ app.get('/open', async (req, res) => {
         res.sendStatus(500);
     }
 });
-
-
 
 
 
