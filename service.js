@@ -7,23 +7,36 @@ const mqtt = require('mqtt');
 app.use(express.json());
 
 
-app.post('/login', (req, res) => {
-    const lat = req.body.lat;
-    const lon = req.body.lon;
-    const idu = req.body.idu;
-    const idswp = req.body.idswp;
+app.post('/login', async (req, res) => {
+    try {
+        const lat = req.body.lat;
+        const lon = req.body.lon;
+        const idu = req.body.idu;
+        const idswp = req.body.idswp;
 
-    getDataFromMongoDBByIduAndIdswp("logsClient", idu, idswp).then((data) => {
+        const data = await getDataFromMongoDBByIduAndIdswp("logsClient", idu, idswp);
+
         if (data.length > 0) {
             console.log(data);
             res.send(data);
-            updateDataIntoMongoDB(idu, idswp, lat, lon, "logsClient");
-        } else {
-            insertDataIntoMongoDB(req.body, "logsClient");
-        }
-    });
 
-    res.sendStatus(200);
+            const existingData = data[0];
+            if (existingData.lat !== lat || existingData.lon !== lon) {
+                await updateDataIntoMongoDB(idu, idswp, lat, lon, "logsClient");
+                console.log('Données mises à jour');
+            } else {
+                console.log('Les données sont identiques, aucune mise à jour nécessaire');
+            }
+        } else {
+            await insertDataIntoMongoDB(req.body, "logsClient");
+            console.log('Nouvelles données insérées');
+        }
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Erreur lors du traitement de la requête :', error);
+        res.sendStatus(500);
+    }
 });
 
 // Route pour recevoir les requêtes POST
