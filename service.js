@@ -166,7 +166,14 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
                 // User is within the perimeter, publish the MQTT message
 
                 let mqttMessage = JSON.stringify({
-                    porte: {etat: 'open'}
+                    piscine : {
+                        nomPiscine: nomPiscine,
+                        porte: {etat: 'open'},
+                        user : {
+                            idu: idu,
+                            idswp: idswp,
+                        }
+                    }
                 });
 
                 const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
