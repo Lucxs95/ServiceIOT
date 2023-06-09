@@ -18,7 +18,6 @@ app.post('/login', async (req, res) => {
 
         if (data.length > 0) {
             console.log(data);
-            res.send(data);
 
             const existingData = data[0];
             if (existingData.lat !== lat || existingData.lon !== lon) {
@@ -34,7 +33,6 @@ app.post('/login', async (req, res) => {
 
         res.sendStatus(200);
     } catch (error) {
-        console.error('Erreur lors du traitement de la requête :', error);
         res.sendStatus(500);
     }
 });
