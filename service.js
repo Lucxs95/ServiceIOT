@@ -122,18 +122,18 @@ async function insertDataIntoMongoDB(data, collectionGiven) {
 
 
 
-app.get('/open', async (req, res) => {
+app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req, res) => {
     try {
         // Récupérer les données envoyées dans la requête
-        const ident = req.query.idswp;
-        const clientid = req.query.idu;
-        const nomPiscine = req.query.nomPiscine;
-        const demandeOuverture = req.query.demandeOuverture;
-        const lon = req.query.lon;
-        const lat = req.query.lat;
+        const idswp = req.params.idswp;
+        const idu = req.params.idu;
+        const nomPiscine = req.params.nomPiscine;
+        const demandeOuverture = req.params.demandeOuverture;
+        const lon = req.params.lon;
+        const lat = req.params.lat;
 
         // Get the user's position from logsClient to verify the perimeter
-        const data = await getDataFromMongoDBByIduAndIdswp('logsClient', clientid, ident);
+        const data = await getDataFromMongoDBByIduAndIdswp('logsClient', idu, idswp);
         if (data.length > 0) {
             const existingData = data[0];
             const userLat = existingData.lat;
@@ -153,7 +153,7 @@ app.get('/open', async (req, res) => {
                 const mqttMessage = 'La porte de la piscine peut s\'ouvrir';
 
                 const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
-                const mqttTopic = `uca/waterbnb/${clientid}/${ident}`;
+                const mqttTopic = `uca/waterbnb/${idu}/${idswp}`;
 
                 const mqttClient = mqtt.connect(mqttBroker);
 
