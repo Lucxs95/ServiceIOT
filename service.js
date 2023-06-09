@@ -84,6 +84,7 @@ async function updateDataIntoMongoDB(idu, idswp, lat, lon, collectionGiven) {
         console.error('Erreur lors de la mise à jour des données dans MongoDB :', error);
     }
 }
+
 async function insertDataIntoMongoDB(data, collectionGiven) {
     try {
         const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
@@ -102,24 +103,6 @@ async function insertDataIntoMongoDB(data, collectionGiven) {
         console.error('Erreur lors de l\'insertion des données dans MongoDB :', error);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req, res) => {
@@ -141,8 +124,8 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
 
             // Calculate the distance between the user's position and the pool's position
             const distance = geolib.getDistance(
-                { latitude: userLat, longitude: userLon },
-                { latitude: lat, longitude: lon }
+                {latitude: userLat, longitude: userLon},
+                {latitude: lat, longitude: lon}
             );
 
             // Define the perimeter distance in meters (e.g., 100 meters)
@@ -150,7 +133,10 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
 
             if (distance <= perimeterDistance) {
                 // User is within the perimeter, publish the MQTT message
-                const mqttMessage = 'La porte de la piscine peut s\'ouvrir';
+
+                const mqttMessage = JSON.stringify({
+                    porte: {etat: 'open'}
+                });
 
                 const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
                 const mqttTopic = `uca/waterbnb/${idu}/${idswp}`;
@@ -186,12 +172,6 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
 });
 
 
-
-
-
-
-
-
 // Route pour recevoir les requêtes POST
 app.post('/publish', (req, res) => {
     // Récupérer les données envoyées dans la requête
@@ -204,6 +184,7 @@ app.post('/publish', (req, res) => {
     // Répondre à la requête avec un statut 200 (OK)
     res.sendStatus(200);
 });
+
 async function getDataFromMongoDB(collectionGiven) {
     try {
         const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
@@ -242,9 +223,6 @@ async function getDataFromMongoDBByIdu(collectionGiven, idu) {
         console.error('Erreur lors de la récupération des données de MongoDB :', error);
     }
 }
-
-
-
 
 
 app.get('/data/:collection', async (req, res) => {
