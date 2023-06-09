@@ -84,7 +84,7 @@ async function insertDataIntoMongoDB(data, collectionGiven) {
         const db = client.db('piscines');
         const collection = db.collection(collectionGiven);
 
-        const result = await collection.insertOne(parsedData); // Insert the parsed data object
+        const result = await collection.insertOne(data); // Insert the parsed data object
         console.log('Données insérées dans MongoDB');
         console.log('ID du document inséré :', result.insertedId);
 
