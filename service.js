@@ -27,54 +27,6 @@ app.post('/login', async (req, res) => {
                 const data = await getDataFromMongoDBByIduAndIdswp("piscines", idu, idswp);
                 const piscine = data[0];
 
-                if (piscine.lat !== lat || piscine.lon !== lon && piscine.porte.etat !== 'close') {
-
-                    const distance = geolib.getDistance(
-                        {latitude: piscine.lat, longitude: piscine.lon},
-                        {latitude: lat, longitude: lon}
-                    );
-                    if (distance > 100) {
-                        console.log('Distance trop grande');
-
-
-                        let mqttMessage = JSON.stringify({
-                            piscine: {
-                                nomPiscine: nomPiscine,
-                                porte: {etat: 'close'},
-                                user: {
-                                    idu: idu,
-                                    idswp: idswp,
-                                }
-                            }
-                        });
-
-                        const mqttBroker = 'mqtt://mqtt.eclipseprojects.io:1883';
-                        const mqttTopic = `uca/waterbnb/${idu}/${idswp}`;
-
-                        const mqttClient = mqtt.connect(mqttBroker);
-
-                        mqttClient.on('connect', () => {
-                            console.log('Connecté au broker MQTT');
-                            mqttClient.publish(mqttTopic, mqttMessage, (err) => {
-                                if (err) {
-                                    console.error('Erreur lors de la publication du message MQTT :', err);
-                                    res.sendStatus(500);
-                                } else {
-                                    console.log('Message MQTT publié avec succès');
-                                    mqttMessage = JSON.parse(mqttMessage);
-                                    insertDataIntoMongoDB(mqttMessage, 'piscines'); // Insérer les données dans MongoDB
-                                    res.sendStatus(200);
-                                }
-                                mqttClient.end(); // Déconnectez-vous du broker MQTT après avoir publié le message
-                            });
-                        });
-
-                    }
-
-
-                }
-
-
             } else {
                 console.log('Les données sont identiques, aucune mise à jour nécessaire');
             }
@@ -244,7 +196,7 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
 
 
 // Route pour recevoir les requêtes POST
-app.post('/publish', (req, res) => {
+app.post('/getPiscineOpenedByUser', (req, res) => {
     // Récupérer les données envoyées dans la requête
     const data = req.body;
 
@@ -254,69 +206,6 @@ app.post('/publish', (req, res) => {
 
     // Répondre à la requête avec un statut 200 (OK)
     res.sendStatus(200);
-});
-
-async function getDataFromMongoDB(collectionGiven) {
-    try {
-        const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
-        const client = new MongoClient(uri);
-        await client.connect();
-
-        const db = client.db('piscines');
-        const collection = db.collection(collectionGiven);
-
-        const result = await collection.find().toArray();
-        console.log('Données récupérées de MongoDB');
-
-        client.close();
-        return result;
-    } catch (error) {
-        console.error('Erreur lors de la récupération des données de MongoDB :', error);
-    }
-}
-
-async function getDataFromMongoDBByIdu(collectionGiven, idu) {
-    try {
-        const uri = 'mongodb+srv://root:root@cluster0.8bftf0d.mongodb.net/piscines?retryWrites=true&w=majority';
-        const client = new MongoClient(uri);
-        await client.connect();
-
-        const db = client.db('piscines');
-        const collection = db.collection(collectionGiven);
-
-        const query = {idu: idu}; // Define the query to filter by name
-        const result = await collection.find(query).toArray();
-        console.log('Données récupérées de MongoDB');
-
-        client.close();
-        return result;
-    } catch (error) {
-        console.error('Erreur lors de la récupération des données de MongoDB :', error);
-    }
-}
-
-
-app.get('/data/:collection', async (req, res) => {
-    try {
-        const collectionGiven = req.params.collection; // Get the collection name from the URL parameter
-        const data = await getDataFromMongoDB(collectionGiven);
-        res.json(data);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des données :', error);
-        res.sendStatus(500);
-    }
-});
-
-app.get('/data/:collection/:name', async (req, res) => {
-    try {
-        const collectionGiven = req.params.collection; // Get the collection name from the URL parameter
-        const name = req.params.name; // Get the name from the URL parameter
-        const data = await getDataFromMongoDBByName(collectionGiven, name);
-        res.json(data);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des données :', error);
-        res.sendStatus(500);
-    }
 });
 
 // Démarrer le serveur
