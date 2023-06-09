@@ -27,7 +27,7 @@ app.post('/login', async (req, res) => {
                 const data = await getDataFromMongoDBByIduAndIdswp("piscines", idu, idswp);
                 const piscine = data[0];
 
-                if (piscine.lat !== lat || piscine.lon !== lon || piscine.porte.etat !== 'close') {
+                if (piscine.lat !== lat || piscine.lon !== lon && piscine.porte.etat !== 'close') {
 
                     const distance = geolib.getDistance(
                         {latitude: piscine.lat, longitude: piscine.lon},
