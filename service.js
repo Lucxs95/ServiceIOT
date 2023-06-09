@@ -104,6 +104,35 @@ async function insertDataIntoMongoDB(data, collectionGiven) {
     }
 }
 
+function isInsidePerimeter(clientLatitude, clientLongitude, poolLatitude, poolLongitude, radius) {
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        // Convertit les coordonnées en radians
+        const lat1Rad = lat1 * (Math.PI / 180);
+        const lon1Rad = lon1 * (Math.PI / 180);
+        const lat2Rad = lat2 * (Math.PI / 180);
+        const lon2Rad = lon2 * (Math.PI / 180);
+
+        // Rayon moyen de la Terre en kilomètres
+        const radius = 6371.0;
+
+        // Calcul des différences de latitude et de longitude
+        const deltaLat = lat2Rad - lat1Rad;
+        const deltaLon = lon2Rad - lon1Rad;
+
+        // Calcul de la distance orthodromique
+        const a =
+            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+            Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = radius * c;
+
+        return distance;
+    }
+
+    const distance = calculateDistance(clientLatitude, clientLongitude, poolLatitude, poolLongitude);
+    return distance <= radius;
+}
+
 
 app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req, res) => {
     try {
@@ -121,21 +150,17 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
             const existingData = data[0];
             const userLat = existingData.lat;
             const userLon = existingData.lon;
-
-            // Calculate the distance between the user's position and the pool's position
-            const distance = geolib.getDistance(
-                {latitude: userLat, longitude: userLon},
-                {latitude: lat, longitude: lon}
-            );
+            const perimeterRadius = 100;
 
             // Define the perimeter distance in meters (e.g., 100 meters)
             const perimeterDistance = 100;
 
-            console.log('Distance entre le client et la piscine :', distance);
-            console.log('Distance du périmètre :', perimeterDistance);
-            console.log('distance <= perimeterDistance :', distance <= perimeterDistance);
+            const isOpen = isInsidePerimeter(userLat, userLon, lat, lon, perimeterRadius);
 
-            if (distance <= perimeterDistance) {
+
+            console.log('isOpen :', isOpen);
+
+            if (isOpen) {
                 // User is within the perimeter, publish the MQTT message
 
                 const mqttMessage = JSON.stringify({
