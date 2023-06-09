@@ -45,7 +45,7 @@ app.get('/open', (req, res) => {
                 res.sendStatus(500);
             } else {
                 console.log('Message MQTT publié avec succès');
-                insertDataIntoMongoDB(mqttMessage, piscines); // Insérer les données dans MongoDB
+                insertDataIntoMongoDB(mqttMessage, "piscines"); // Insérer les données dans MongoDB
                 res.sendStatus(200);
             }
             mqttClient.end(); // Déconnectez-vous du broker MQTT après avoir publié le message
