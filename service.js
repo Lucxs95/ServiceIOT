@@ -165,7 +165,7 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
             if (isOpen) {
                 // User is within the perimeter, publish the MQTT message
 
-                const mqttMessage = JSON.stringify({
+                let mqttMessage = JSON.stringify({
                     porte: {etat: 'open'}
                 });
 
@@ -182,6 +182,7 @@ app.get('/open/:idswp/:idu/:nomPiscine/:demandeOuverture/:lon/:lat', async (req,
                             res.sendStatus(500);
                         } else {
                             console.log('Message MQTT publié avec succès');
+                            mqttMessage = JSON.parse(mqttMessage);
                             insertDataIntoMongoDB(mqttMessage, 'piscines'); // Insérer les données dans MongoDB
                             res.sendStatus(200);
                         }
